@@ -1,0 +1,41 @@
+{
+    "company_identity": {
+        "company_name": "HeyGen",
+        "description": "heygen is a message-first ai video platform that helps people and ai agents turn ideas into professional video in minutes. used by a community of over 30 million users and 85% of the fortune 100, heygen makes it easy to create and share videos seamlessly across languages and formats.",
+        "website": "https://heygen.com",
+        "headquarters": {
+            "city": "los angeles",
+            "state": "california",
+            "country": "united states"
+        },
+        "founded_year": 2020
+    },
+    "industry": {
+        "industries": [
+            "internet",
+            "technology, information and internet"
+        ],
+        "keywords": [
+            "generative ai",
+            "artificial intelligence",
+            "video agent",
+            "marketing",
+            "video creator",
+            "realistic voices in 40+ locales",
+            "martech",
+            "ai video",
+            "text-to-video in minutes",
+            "video translation"
+        ]
+    },
+    "company_size": {
+        "employee_count": 236,
+        "employee_range": "51-200"
+    },
+    "funding": {
+        "funding_stage": "series_a",
+        "total_funding": 69000000,
+        "number_funding_rounds": 2,
+        "last_funding_date": "2024-03-25"
+    }
+}

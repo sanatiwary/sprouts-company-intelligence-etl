@@ -1,0 +1,34 @@
+{
+    "company_identity": {
+        "company_name": "OpenAI",
+        "description": "openai is an ai research and deployment company dedicated to ensuring that general-purpose artificial intelligence benefits all of humanity. ai is an extremely powerful tool that must be created with safety and human needs at its core. openai is dedicated to putting that alignment of interests first — ahead of profit.\n\nto achieve our mission, we must encompass and value the many different perspectives, voices, and experiences that form the full spectrum of humanity. our investment in diversity, equity, and inclusion is ongoing, executed through a wide range of initiatives, and championed and supported by leadership.\n\nat openai, we believe artificial intelligence has the potential to help people solve immense global challenges, and we want the upside of ai to be widely shared. join us in shaping the future of technology.",
+        "website": "https://openai.com",
+        "headquarters": {
+            "city": "san francisco",
+            "state": "california",
+            "country": "united states"
+        },
+        "founded_year": 2015
+    },
+    "industry": {
+        "industries": [
+            "research",
+            "research services"
+        ],
+        "keywords": [
+            "artificial intelligence",
+            "artificial intelligence and machine learning",
+            "artificial intelligence machine learning"
+        ]
+    },
+    "company_size": {
+        "employee_count": 8048,
+        "employee_range": "201-500"
+    },
+    "funding": {
+        "funding_stage": "series_unknown",
+        "total_funding": 211077120000,
+        "number_funding_rounds": 27,
+        "last_funding_date": "2026-04-22"
+    }
+}

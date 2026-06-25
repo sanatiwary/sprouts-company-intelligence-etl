@@ -1,0 +1,38 @@
+{
+    "company_identity": {
+        "company_name": "Airbnb",
+        "description": "airbnb was born in 2007 when two hosts welcomed three guests to their san francisco home, and has since grown to over 5 million hosts who have welcomed over 2 billion guest arrivals in almost every country across the globe. every day, hosts offer unique stays, experiences and services that make it possible for guests to connect with communities in a more authentic way.",
+        "website": "https://airbnb.com",
+        "headquarters": {
+            "city": "san francisco",
+            "state": "california",
+            "country": "united states"
+        },
+        "founded_year": 2007
+    },
+    "industry": {
+        "industries": [
+            "computer software",
+            "software development"
+        ],
+        "keywords": [
+            "collaborative economy",
+            "commerce and shopping",
+            "travel accommodations",
+            "hospitality",
+            "travel and tourism",
+            "travel",
+            "marketplace"
+        ]
+    },
+    "company_size": {
+        "employee_count": 28074,
+        "employee_range": "5001-10000"
+    },
+    "funding": {
+        "funding_stage": "post_ipo_debt",
+        "total_funding": 8935132065,
+        "number_funding_rounds": 33,
+        "last_funding_date": "2026-03-16"
+    }
+}

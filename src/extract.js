@@ -1,55 +1,27 @@
-async function extract(companyName) {
-    return {
-        company_identity: {
-            name: companyName,
+const fs = require('fs');
+const path = require('path');
 
-            description: "HeyGen is a generative artificial intelligence company that creates photo-realistic avatars via user-submitted photos and videos as well as a library of pre-made avatars and voices. The digital avatar can recite prompts in multiple languages.",
+const { getCompany } = require('./providers/pdlProvider');
 
-            website: "https://www.heygen.com",
+async function extract(companyName, forceRefresh = false) {
+    const outputPath = path.join(
+        __dirname,
+        '..',
+        'outputs',
+        `${companyName}.json`
+    );
 
-            headquarters: {
-                city: "Los Angeles",
-                state: "California",
-                country: "United States"
-            },
+    if (!forceRefresh && fs.existsSync(outputPath)) {
+        console.log('\nUsing cached company profile...\n');
 
-            founded_year: 2020
-        },
+        return JSON.parse(
+            fs.readFileSync(outputPath, 'utf8')
+        );
+    }
 
-        industry: {
-            industries: [
-                "Information Technology & Services",
-                "Computer Software"
-            ],
+    console.log('\nFetching fresh data from PDL...\n');
 
-            keywords: [
-                "AI Avatar",
-                "Video Generation"
-            ]
-        },
-
-        company_size: {
-            employee_count: 220,
-            employee_range: "150-375"
-        },
-
-        funding: {
-            funding_stage: "Series A",
-
-            funding_rounds: [
-                {
-                    round_type: "Seed",
-                    amount: 14000000
-                },
-                {
-                    round_type: "Series A",
-                    amount: 60000000
-                }
-            ],
-
-            total_funding: 74000000
-        }
-    };
+    return await getCompany(companyName);
 }
 
 module.exports = extract;

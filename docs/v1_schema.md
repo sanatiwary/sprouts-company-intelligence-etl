@@ -41,13 +41,9 @@ HeyGen
     },
 
     "funding" : {
-        "funding_stage" : "Series A",
-
-        "funding_rounds" : {
-            "Series A" : "\$60 million"
-            "Seed" : "\14 million"
-        }
-
-        "total_funding" : "\$ 74 million"
+        "funding_stage" : "series_a",
+        "total_funding": 69000000,
+        "number_funding_rounds": 2,
+        "last_funding_date": "2024-03-25"
     }
 }

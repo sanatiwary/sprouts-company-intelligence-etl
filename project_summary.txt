@@ -1,0 +1,932 @@
+=== DIRECTORY STRUCTURE ===
+./docs/project_objective.md
+./docs/apollo_fields.md
+./docs/v1_schema.md
+./package-lock.json
+./package.json
+./outputs/Airbnb.json
+./outputs/Anthropic.json
+./outputs/OpenAI.json
+./outputs/HeyGen.json
+./src/providers/pdlProvider.js
+./src/index.js
+./src/load.js
+./src/extract.js
+./src/transform.js
+
+=== FILE CONTENTS ===
+
+
+--- FILE: ./docs/project_objective.md ---
+
+# Project Objective
+* Make an ETL that brings in company data (name. valuation, funding, org chart)
+* See Apollo - what details they show for companies - talent intelligence, which colleges
+* Work on an independent repo 
+* Trigger: 300K
+
+--- FILE: ./docs/apollo_fields.md ---
+
+# Apollo Fields
+
+| Category | Apollo Fields | Apollo Fields NOT in Current Schema | Current Schema Fields NOT IN Apollo |
+| -------- | ------------- | ----------------------------------- | ----------------------------------- |
+| Company Identity | Company Name, Description, Headquarters Location, Founding Year, Links | Phone Number | Crunchbase URL, GitHub Org, Domains, Citations |
+| Industry & Classification | Industries, Keywords, SIC Codes, NAICS Codes | Keywords, SIC Codes, NAICS Codes | Business Model, Sub-Industry, Weighted Confidence Scores |
+| Company Size | Employee Count | — | Headcount Range, Min Employees, Max Employees |
+| Financial Intelligence | Funding Rounds, Funding Dates, Funding Round Type (Seed, Series A, etc.), Total Raised, Funding Stage, Number Funding Rounds | — | Revenue, Revenue Growth %, Investors, Valuation, Funding Stage History |
+| Leadership & People | Employee Directory, Employee Name, Job Title, Department, Location, Seniority Status | Explicit Executive Team Model, Org Chart | Founder, Structured Org Hierarchy |
+| Contact Intelligence | Email Access, Department, Seniority, Role | Contact-Level Enrichment Metadata | —
+| Workforce Analytics | 6-Month Growth %, 1-Year Growth %, 2-Year Growth %, Retention, Department Trends, Location Trends | Retention Metrics | Headcount History, Employee Count by Country, Seniority Breakdown |
+| Hiring Intelligence | Job Postings | — | Open Roles, Required Skills, Hiring Flow, Interview Process Structure |
+| Technology Intelligence | Technology List, Technology Category, Technology Count | Technology Categories (explicit classification) | Structured Frontend/Backend/Infrastructure/SaaS buckets |
+| Market Intelligence | Similar Companies | — | Product Category, Competitive Alternatives, ICP Signals, Competitive Narrative, Sourcing Insight |
+| News & Activity | News | — | Funding News, Layoffs, Product Launches, Executive Changes, News Timeline |
+| Social / Web Presence | Links (website, LinkedIn, Facebook, X) | Structured Social Profiles | Profile Collection |
+| Open Source Intelligence | — | — | GitHub Repositories, Languages, Contributors, OSS Activity, Star Counts |
+| Culture & Employer Brand | — | — | Glassdoor Rating, CEO Approval, Recommendation %, Review Themes, Interview Difficulty |
+| Data Quality / Enrichment Metadata | Score, Personas, Relevant Jobs, Relevant Technology | Sales/Lead Scoring Objects | Completeness Scores, Confidence Scores, Sources Used, Enrichment Version, Raw Data |
+
+--- FILE: ./docs/v1_schema.md ---
+
+# Company Profile V1
+## Input
+Company Name
+
+Example:
+HeyGen
+
+## Output
+
+{
+    "company_identity" : {
+        "company_name" : "HeyGen",
+
+        "description" : "HeyGen is a generative artificial intelligence company that creates photo-realistic avatars via user-submitted photos and videos as well as a library of pre-made avatars and voices. The digital avatar can recite prompts in multiple languages.",
+
+        "website" : "https://www.heygen.com/",
+
+        "headquarters" : {
+            "city" : "Los Angeles",
+            "state" : "California"
+        },
+
+        "founded_year" : 2020,
+    }
+
+    industry: {
+            industries: [
+                "Information Technology & Services",
+                "Computer Software"
+            ],
+
+            keywords: [
+                "AI Avatar",
+                "Video Generation"
+            ]
+    },
+
+    company_size: {
+        employee_count: 220,
+        employee_range: "150-375"
+    },
+
+    "funding" : {
+        "funding_stage" : "series_a",
+        "total_funding": 69000000,
+        "number_funding_rounds": 2,
+        "last_funding_date": "2024-03-25"
+    }
+}
+
+--- FILE: ./package-lock.json ---
+
+{
+  "name": "company-intelligence-etl",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "dependencies": {
+        "dotenv": "^17.4.2",
+        "peopledatalabs": "^14.1.1"
+      }
+    },
+    "node_modules/@types/chai": {
+      "version": "5.2.3",
+      "resolved": "https://registry.npmjs.org/@types/chai/-/chai-5.2.3.tgz",
+      "integrity": "sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/deep-eql": "*",
+        "assertion-error": "^2.0.1"
+      }
+    },
+    "node_modules/@types/deep-eql": {
+      "version": "4.0.2",
+      "resolved": "https://registry.npmjs.org/@types/deep-eql/-/deep-eql-4.0.2.tgz",
+      "integrity": "sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==",
+      "license": "MIT"
+    },
+    "node_modules/@types/mocha": {
+      "version": "10.0.10",
+      "resolved": "https://registry.npmjs.org/@types/mocha/-/mocha-10.0.10.tgz",
+      "integrity": "sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==",
+      "license": "MIT"
+    },
+    "node_modules/agent-base": {
+      "version": "6.0.2",
+      "resolved": "https://registry.npmjs.org/agent-base/-/agent-base-6.0.2.tgz",
+      "integrity": "sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "4"
+      },
+      "engines": {
+        "node": ">= 6.0.0"
+      }
+    },
+    "node_modules/assertion-error": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/assertion-error/-/assertion-error-2.0.1.tgz",
+      "integrity": "sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=12"
+      }
+    },
+    "node_modules/asynckit": {
+      "version": "0.4.0",
+      "resolved": "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz",
+      "integrity": "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==",
+      "license": "MIT"
+    },
+    "node_modules/axios": {
+      "version": "1.18.1",
+      "resolved": "https://registry.npmjs.org/axios/-/axios-1.18.1.tgz",
+      "integrity": "sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==",
+      "license": "MIT",
+      "dependencies": {
+        "follow-redirects": "^1.16.0",
+        "form-data": "^4.0.5",
+        "https-proxy-agent": "^5.0.1",
+        "proxy-from-env": "^2.1.0"
+      }
+    },
+    "node_modules/call-bind-apply-helpers": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz",
+      "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "function-bind": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/combined-stream": {
+      "version": "1.0.8",
+      "resolved": "https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.8.tgz",
+      "integrity": "sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==",
+      "license": "MIT",
+      "dependencies": {
+        "delayed-stream": "~1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/copy-anything": {
+      "version": "3.0.5",
+      "resolved": "https://registry.npmjs.org/copy-anything/-/copy-anything-3.0.5.tgz",
+      "integrity": "sha512-yCEafptTtb4bk7GLEQoM8KVJpxAfdBJYaXyzQEgQQQgYrZiDp8SJmGKlYza6CYjEDNstAdNdKA3UuoULlEbS6w==",
+      "license": "MIT",
+      "dependencies": {
+        "is-what": "^4.1.8"
+      },
+      "engines": {
+        "node": ">=12.13"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/mesqueeb"
+      }
+    },
+    "node_modules/debug": {
+      "version": "4.4.3",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
+      "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
+      "license": "MIT",
+      "dependencies": {
+        "ms": "^2.1.3"
+      },
+      "engines": {
+        "node": ">=6.0"
+      },
+      "peerDependenciesMeta": {
+        "supports-color": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/delayed-stream": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz",
+      "integrity": "sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.4.0"
+      }
+    },
+    "node_modules/dotenv": {
+      "version": "17.4.2",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-17.4.2.tgz",
+      "integrity": "sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://dotenvx.com"
+      }
+    },
+    "node_modules/dunder-proto": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz",
+      "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.1",
+        "es-errors": "^1.3.0",
+        "gopd": "^1.2.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-define-property": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/es-define-property/-/es-define-property-1.0.1.tgz",
+      "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-errors": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/es-errors/-/es-errors-1.3.0.tgz",
+      "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-object-atoms": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/es-object-atoms/-/es-object-atoms-1.1.2.tgz",
+      "integrity": "sha512-HWcBoN6NileqtSydK2FqHbS/LoDd2pqrnQHLyJzBj4kOp/ky2MWMN694xOfkK8/SnUsW2DH7EfyVlydKCsm1Zw==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-set-tostringtag": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/es-set-tostringtag/-/es-set-tostringtag-2.1.0.tgz",
+      "integrity": "sha512-j6vWzfrGVfyXxge+O0x5sh6cvxAog0a/4Rdd2K36zCMV5eJ+/+tOAngRO8cODMNWbVRdVlmGZQL2YS3yR8bIUA==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "get-intrinsic": "^1.2.6",
+        "has-tostringtag": "^1.0.2",
+        "hasown": "^2.0.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/follow-redirects": {
+      "version": "1.16.0",
+      "resolved": "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.16.0.tgz",
+      "integrity": "sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==",
+      "funding": [
+        {
+          "type": "individual",
+          "url": "https://github.com/sponsors/RubenVerborgh"
+        }
+      ],
+      "license": "MIT",
+      "engines": {
+        "node": ">=4.0"
+      },
+      "peerDependenciesMeta": {
+        "debug": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/form-data": {
+      "version": "4.0.6",
+      "resolved": "https://registry.npmjs.org/form-data/-/form-data-4.0.6.tgz",
+      "integrity": "sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==",
+      "license": "MIT",
+      "dependencies": {
+        "asynckit": "^0.4.0",
+        "combined-stream": "^1.0.8",
+        "es-set-tostringtag": "^2.1.0",
+        "hasown": "^2.0.4",
+        "mime-types": "^2.1.35"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
+    },
+    "node_modules/function-bind": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz",
+      "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/get-intrinsic": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
+      "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.2",
+        "es-define-property": "^1.0.1",
+        "es-errors": "^1.3.0",
+        "es-object-atoms": "^1.1.1",
+        "function-bind": "^1.1.2",
+        "get-proto": "^1.0.1",
+        "gopd": "^1.2.0",
+        "has-symbols": "^1.1.0",
+        "hasown": "^2.0.2",
+        "math-intrinsics": "^1.1.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/get-proto": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/get-proto/-/get-proto-1.0.1.tgz",
+      "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==",
+      "license": "MIT",
+      "dependencies": {
+        "dunder-proto": "^1.0.1",
+        "es-object-atoms": "^1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/gopd": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/gopd/-/gopd-1.2.0.tgz",
+      "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/has-symbols": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/has-symbols/-/has-symbols-1.1.0.tgz",
+      "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/has-tostringtag": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/has-tostringtag/-/has-tostringtag-1.0.2.tgz",
+      "integrity": "sha512-NqADB8VjPFLM2V0VvHUewwwsw0ZWBaIdgo+ieHtK3hasLz4qeCRjYcqfB6AQrBggRKppKF8L52/VqdVsO47Dlw==",
+      "license": "MIT",
+      "dependencies": {
+        "has-symbols": "^1.0.3"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/hasown": {
+      "version": "2.0.4",
+      "resolved": "https://registry.npmjs.org/hasown/-/hasown-2.0.4.tgz",
+      "integrity": "sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==",
+      "license": "MIT",
+      "dependencies": {
+        "function-bind": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/https-proxy-agent": {
+      "version": "5.0.1",
+      "resolved": "https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-5.0.1.tgz",
+      "integrity": "sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==",
+      "license": "MIT",
+      "dependencies": {
+        "agent-base": "6",
+        "debug": "4"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
+    },
+    "node_modules/is-what": {
+      "version": "4.1.16",
+      "resolved": "https://registry.npmjs.org/is-what/-/is-what-4.1.16.tgz",
+      "integrity": "sha512-ZhMwEosbFJkA0YhFnNDgTM4ZxDRsS6HqTo7qsZM08fehyRYIYa0yHu5R6mgo1n/8MgaPBXiPimPD77baVFYg+A==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=12.13"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/mesqueeb"
+      }
+    },
+    "node_modules/math-intrinsics": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
+      "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/mime-db": {
+      "version": "1.52.0",
+      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz",
+      "integrity": "sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/mime-types": {
+      "version": "2.1.35",
+      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.35.tgz",
+      "integrity": "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==",
+      "license": "MIT",
+      "dependencies": {
+        "mime-db": "1.52.0"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/ms": {
+      "version": "2.1.3",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+      "license": "MIT"
+    },
+    "node_modules/peopledatalabs": {
+      "version": "14.1.1",
+      "resolved": "https://registry.npmjs.org/peopledatalabs/-/peopledatalabs-14.1.1.tgz",
+      "integrity": "sha512-u+SpRKyjKgRu7iTvNCA/qaJosQEucZ9h9OAI4EYRqAlt5gjDUUwixWHsygfImOLtj+CKkPQ6aQuYB3ed+GqHgQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/chai": "^5.2.3",
+        "@types/mocha": "^10.0.10",
+        "axios": "^1.13.2",
+        "copy-anything": "3.0.5"
+      }
+    },
+    "node_modules/proxy-from-env": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-2.1.0.tgz",
+      "integrity": "sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=10"
+      }
+    }
+  }
+}
+
+
+--- FILE: ./package.json ---
+
+{
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "peopledatalabs": "^14.1.1"
+  }
+}
+
+
+--- FILE: ./outputs/Airbnb.json ---
+
+{
+    "company_identity": {
+        "company_name": "Airbnb",
+        "description": "airbnb was born in 2007 when two hosts welcomed three guests to their san francisco home, and has since grown to over 5 million hosts who have welcomed over 2 billion guest arrivals in almost every country across the globe. every day, hosts offer unique stays, experiences and services that make it possible for guests to connect with communities in a more authentic way.",
+        "website": "https://airbnb.com",
+        "headquarters": {
+            "city": "san francisco",
+            "state": "california",
+            "country": "united states"
+        },
+        "founded_year": 2007
+    },
+    "industry": {
+        "industries": [
+            "computer software",
+            "software development"
+        ],
+        "keywords": [
+            "collaborative economy",
+            "commerce and shopping",
+            "travel accommodations",
+            "hospitality",
+            "travel and tourism",
+            "travel",
+            "marketplace"
+        ]
+    },
+    "company_size": {
+        "employee_count": 28074,
+        "employee_range": "5001-10000"
+    },
+    "funding": {
+        "funding_stage": "post_ipo_debt",
+        "total_funding": 8935132065,
+        "number_funding_rounds": 33,
+        "last_funding_date": "2026-03-16"
+    }
+}
+
+--- FILE: ./outputs/Anthropic.json ---
+
+{
+    "company_identity": {
+        "company_name": "Anthropic",
+        "description": "we're an ai research company that builds reliable, interpretable, and steerable ai systems. our first product is claude, an ai assistant for tasks at any scale.\n\nour research interests span multiple areas including natural language, human feedback, scaling laws, reinforcement learning, code generation, and interpretability.",
+        "website": "https://anthropic.com",
+        "headquarters": {
+            "city": null,
+            "state": null,
+            "country": null
+        },
+        "founded_year": null
+    },
+    "industry": {
+        "industries": [
+            "research",
+            "research services"
+        ],
+        "keywords": []
+    },
+    "company_size": {
+        "employee_count": 4278,
+        "employee_range": "51-200"
+    },
+    "funding": {
+        "funding_stage": "corporate_round",
+        "total_funding": 78745377627,
+        "number_funding_rounds": 28,
+        "last_funding_date": "2026-04-24"
+    }
+}
+
+--- FILE: ./outputs/OpenAI.json ---
+
+{
+    "company_identity": {
+        "company_name": "OpenAI",
+        "description": "openai is an ai research and deployment company dedicated to ensuring that general-purpose artificial intelligence benefits all of humanity. ai is an extremely powerful tool that must be created with safety and human needs at its core. openai is dedicated to putting that alignment of interests first — ahead of profit.\n\nto achieve our mission, we must encompass and value the many different perspectives, voices, and experiences that form the full spectrum of humanity. our investment in diversity, equity, and inclusion is ongoing, executed through a wide range of initiatives, and championed and supported by leadership.\n\nat openai, we believe artificial intelligence has the potential to help people solve immense global challenges, and we want the upside of ai to be widely shared. join us in shaping the future of technology.",
+        "website": "https://openai.com",
+        "headquarters": {
+            "city": "san francisco",
+            "state": "california",
+            "country": "united states"
+        },
+        "founded_year": 2015
+    },
+    "industry": {
+        "industries": [
+            "research",
+            "research services"
+        ],
+        "keywords": [
+            "artificial intelligence",
+            "artificial intelligence and machine learning",
+            "artificial intelligence machine learning"
+        ]
+    },
+    "company_size": {
+        "employee_count": 8048,
+        "employee_range": "201-500"
+    },
+    "funding": {
+        "funding_stage": "series_unknown",
+        "total_funding": 211077120000,
+        "number_funding_rounds": 27,
+        "last_funding_date": "2026-04-22"
+    }
+}
+
+--- FILE: ./outputs/HeyGen.json ---
+
+{
+    "company_identity": {
+        "company_name": "HeyGen",
+        "description": "heygen is a message-first ai video platform that helps people and ai agents turn ideas into professional video in minutes. used by a community of over 30 million users and 85% of the fortune 100, heygen makes it easy to create and share videos seamlessly across languages and formats.",
+        "website": "https://heygen.com",
+        "headquarters": {
+            "city": "los angeles",
+            "state": "california",
+            "country": "united states"
+        },
+        "founded_year": 2020
+    },
+    "industry": {
+        "industries": [
+            "internet",
+            "technology, information and internet"
+        ],
+        "keywords": [
+            "generative ai",
+            "artificial intelligence",
+            "video agent",
+            "marketing",
+            "video creator",
+            "realistic voices in 40+ locales",
+            "martech",
+            "ai video",
+            "text-to-video in minutes",
+            "video translation"
+        ]
+    },
+    "company_size": {
+        "employee_count": 236,
+        "employee_range": "51-200"
+    },
+    "funding": {
+        "funding_stage": "series_a",
+        "total_funding": 69000000,
+        "number_funding_rounds": 2,
+        "last_funding_date": "2024-03-25"
+    }
+}
+
+--- FILE: ./src/providers/pdlProvider.js ---
+
+const PDLJS = require('peopledatalabs');
+require('dotenv').config();
+
+const client = new PDLJS({
+    apiKey: process.env.PDL_API_KEY
+});
+
+async function getCompany(companyName) {
+    const response = await client.company.enrichment({
+        name: companyName
+    });
+
+    return response;
+}
+
+module.exports = {
+    getCompany
+};
+
+--- FILE: ./src/index.js ---
+
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+const extract = require('./extract');
+const transform = require('./transform');
+const load = require('./load');
+
+async function run(companyName, forceRefresh) {
+    try {
+        const outputPath = path.join(
+            __dirname,
+            '..',
+            'outputs',
+            `${companyName}.json`
+        );
+
+        const rawData = await extract(
+            companyName,
+            forceRefresh
+        );
+
+        if (
+            !forceRefresh &&
+            fs.existsSync(outputPath) &&
+            rawData.company_identity
+        ) {
+            console.log(
+                JSON.stringify(rawData, null, 4)
+            );
+
+            console.log(
+                '\nLoaded existing JSON from outputs.'
+            );
+
+            return;
+        }
+
+        const companyProfile =
+            await transform(rawData);
+
+        await load(companyProfile);
+
+        console.log(
+            JSON.stringify(
+                companyProfile,
+                null,
+                4
+            )
+        );
+
+        console.log(
+            '\nCompany profile generated successfully.'
+        );
+
+    } catch (error) {
+        console.error(
+            'Pipeline failed:',
+            error
+        );
+    }
+}
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+rl.question(
+    'Enter company name (add !refresh to force API): ',
+    async (input) => {
+
+        const forceRefresh =
+            input.includes('!refresh');
+
+        const companyName =
+            input.replace('!refresh', '').trim();
+
+        await run(
+            companyName,
+            forceRefresh
+        );
+
+        rl.close();
+    }
+);
+
+--- FILE: ./src/load.js ---
+
+const fs = require('fs');
+const path = require('path');
+
+async function load(profile) {
+    const companyName =
+        profile.company_identity.company_name;
+
+    const outputDir = './outputs';
+
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
+    }
+
+    fs.writeFileSync(
+        path.join(outputDir, `${companyName}.json`),
+        JSON.stringify(profile, null, 4)
+    );
+}
+
+module.exports = load;
+
+--- FILE: ./src/extract.js ---
+
+const fs = require('fs');
+const path = require('path');
+
+const { getCompany } = require('./providers/pdlProvider');
+
+async function extract(companyName, forceRefresh = false) {
+    const outputPath = path.join(
+        __dirname,
+        '..',
+        'outputs',
+        `${companyName}.json`
+    );
+
+    if (!forceRefresh && fs.existsSync(outputPath)) {
+        console.log('\nUsing cached company profile...\n');
+
+        return JSON.parse(
+            fs.readFileSync(outputPath, 'utf8')
+        );
+    }
+
+    console.log('\nFetching fresh data from PDL...\n');
+
+    return await getCompany(companyName);
+}
+
+module.exports = extract;
+
+--- FILE: ./src/transform.js ---
+
+async function transform(rawData) {
+    return {
+        company_identity: {
+            company_name:
+                rawData.display_name ||
+                rawData.name ||
+                null,
+
+            description:
+                rawData.summary ||
+                null,
+
+            website:
+                rawData.website
+                    ? `https://${rawData.website}`
+                    : null,
+
+            headquarters: {
+                city:
+                    rawData.location?.locality ||
+                    null,
+
+                state:
+                    rawData.location?.region ||
+                    null,
+
+                country:
+                    rawData.location?.country ||
+                    null
+            },
+
+            founded_year:
+                rawData.founded ||
+                null
+        },
+
+        industry: {
+            industries: [
+                rawData.industry,
+                rawData.industry_v2
+            ].filter(Boolean),
+
+            keywords:
+                rawData.tags || []
+        },
+
+        company_size: {
+            employee_count:
+                rawData.employee_count || null,
+
+            employee_range:
+                rawData.size || null
+        },
+
+        funding: {
+            funding_stage:
+                rawData.latest_funding_stage || null,
+
+            total_funding:
+                rawData.total_funding_raised || null,
+
+            number_funding_rounds:
+                rawData.number_funding_rounds || null,
+
+            last_funding_date:
+                rawData.last_funding_date || null
+        }
+    };
+}
+
+module.exports = transform;

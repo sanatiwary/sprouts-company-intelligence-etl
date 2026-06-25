@@ -1,0 +1,30 @@
+{
+    "company_identity": {
+        "company_name": "Anthropic",
+        "description": "we're an ai research company that builds reliable, interpretable, and steerable ai systems. our first product is claude, an ai assistant for tasks at any scale.\n\nour research interests span multiple areas including natural language, human feedback, scaling laws, reinforcement learning, code generation, and interpretability.",
+        "website": "https://anthropic.com",
+        "headquarters": {
+            "city": null,
+            "state": null,
+            "country": null
+        },
+        "founded_year": null
+    },
+    "industry": {
+        "industries": [
+            "research",
+            "research services"
+        ],
+        "keywords": []
+    },
+    "company_size": {
+        "employee_count": 4278,
+        "employee_range": "51-200"
+    },
+    "funding": {
+        "funding_stage": "corporate_round",
+        "total_funding": 78745377627,
+        "number_funding_rounds": 28,
+        "last_funding_date": "2026-04-24"
+    }
+}
